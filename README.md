@@ -32,17 +32,17 @@ The server owns the log file formats. The client never needs to know the raw for
 
 | Feature | Status |
 |---|---|
-| UDP-based log data retrieval | ✅ Done |
-| Activation days — calendar bitfield parser | ✅ Done |
-| Activation data — string & drive-field types | ✅ Done |
-| PyQt6 GUI with output viewer + status bar | ✅ Done |
-| Worker thread (non-blocking GUI) | ✅ Done |
-| Connection status indicator (green/yellow) | 🔄 Sprint 2 |
-| Configurable server IP address | 🔄 Sprint 2 |
-| i18n — external JSON language files | 🔄 Sprint 2 |
-| All 4 log categories | 🔄 Sprint 3 |
-| Dynamic type descriptions (server-driven) | 🔄 Sprint 5 |
-| PyInstaller single-exe packaging | 🔄 Sprint 6 |
+| UDP-based log data retrieval | ✅ |
+| Activation days — calendar bitfield parser | ✅ |
+| Activation data — string & drive-field types | ✅ |
+| PyQt6 GUI with output viewer + status bar | ✅ |
+| Worker thread (non-blocking GUI) | ✅ |
+| Connection status indicator (green/yellow) | ✅ |
+| Configurable server IP address | ✅ |
+| i18n — external JSON language files | ✅ |
+| All 4 log categories | ✅ |
+| Dynamic type descriptions (server-driven) | ✅ |
+| PyInstaller single-exe packaging | ✅ |
 
 ---
 
@@ -127,32 +127,32 @@ To add a new language: copy `lang/en.json`, rename to `lang/xx.json`, translate 
 - [x] QThread worker — GUI never blocks during UDP wait
 - [x] Output verified end-to-end: client ↔ server on localhost
 
-### 🔄 Sprint 2 — Connection Management & i18n
-- [ ] Configurable server IP in GUI
-- [ ] Heartbeat — green/yellow connection status dot
-- [ ] Externalise all UI strings → `lang/en.json` + `lang/de.json`
-- [ ] Language selector dropdown (hot-swap without restart)
+### ✅ Sprint 2 — Connection Management & i18n
+- [x] Configurable server IP in GUI
+- [x] Heartbeat — green/yellow connection status dot
+- [x] Externalise all UI strings → `lang/en.json` + `lang/de.json`
+- [x] Language selector dropdown (hot-swap without restart)
 
-### 🔄 Sprint 3 — Full Category Support
-- [ ] Parameterization Tage/Daten
-- [ ] Dynamic Drive Data Tage/Daten
-- [ ] Drive Error Tage/Daten
-- [ ] Date filter — user selects year/month/day, client requests specific data
-- [ ] Date explorer populated from server responses
+### ✅ Sprint 3 — Full Category Support
+- [x] Parameterization Tage/Daten
+- [x] Dynamic Drive Data Tage/Daten
+- [x] Drive Error Tage/Daten
+- [x] Date filter — user selects year/month/day, client requests specific data
+- [x] Date explorer populated from server responses
 
-### 🔄 Sprint 4 — GUI Integration
-- [ ] Merge UDP module into main `LogViewerWindow`
-- [ ] Right panel: table view for drive fields, list view for strings
-- [ ] Connection status in main window
+### ✅ Sprint 4 — GUI Integration
+- [x] Merge UDP module into main `LogViewerWindow`
+- [x] Right panel: table view for drive fields, list view for strings
+- [x] Connection status in main window
 
-### 🔄 Sprint 5 — Dynamic Type System
-- [ ] Client queries server for type descriptors before parsing
-- [ ] Generic renderer — zero client changes when server adds new types
+### ✅ Sprint 5 — Dynamic Type System
+- [x] Client queries server for type descriptors before parsing
+- [x] Generic renderer — zero client changes when server adds new types
 
-### 🔄 Sprint 6 — Packaging & Release
-- [ ] PyInstaller: `logviewer.exe` + `lang/` folder
-- [ ] Installer script
-- [ ] Release checklist
+### ✅ Sprint 6 — Packaging & Release
+- [x] PyInstaller: `logviewer.exe` + `lang/` folder
+- [x] Installer script
+- [x] Release checklist
 
 ---
 
