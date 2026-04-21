@@ -119,7 +119,7 @@ To add a new language: copy `lang/en.json`, rename to `lang/xx.json`, translate 
 
 ## Project Roadmap
 
-### ✅ Sprint 1 — UDP Communication (Week 1, April 2026)
+### ✅ Sprint 1 — UDP Communication 
 - [x] UDP client class (bind, send, receive, timeout handling)
 - [x] Parse `GET_ACTIVATION_DAYS_REPLY` — year + bitfield → calendar dates
 - [x] Parse `GET_ACTIVATION_DATA_REPLY` — SYSTEMTIME + String + Drive-field items
