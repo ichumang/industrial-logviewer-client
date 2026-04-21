@@ -120,39 +120,22 @@ To add a new language: copy `lang/en.json`, rename to `lang/xx.json`, translate 
 ## Project Roadmap
 
 ### ✅ Sprint 1 — UDP Communication 
-- [x] UDP client class (bind, send, receive, timeout handling)
-- [x] Parse `GET_ACTIVATION_DAYS_REPLY` — year + bitfield → calendar dates
-- [x] Parse `GET_ACTIVATION_DATA_REPLY` — SYSTEMTIME + String + Drive-field items
-- [x] PyQt6 window with action buttons, output text box, status bar
-- [x] QThread worker — GUI never blocks during UDP wait
-- [x] Output verified end-to-end: client ↔ server on localhost
+
 
 ### ✅ Sprint 2 — Connection Management & i18n
-- [x] Configurable server IP in GUI
-- [x] Heartbeat — green/yellow connection status dot
-- [x] Externalise all UI strings → `lang/en.json` + `lang/de.json`
-- [x] Language selector dropdown (hot-swap without restart)
+
 
 ### ✅ Sprint 3 — Full Category Support
-- [x] Parameterization Tage/Daten
-- [x] Dynamic Drive Data Tage/Daten
-- [x] Drive Error Tage/Daten
-- [x] Date filter — user selects year/month/day, client requests specific data
-- [x] Date explorer populated from server responses
+
 
 ### ✅ Sprint 4 — GUI Integration
-- [x] Merge UDP module into main `LogViewerWindow`
-- [x] Right panel: table view for drive fields, list view for strings
-- [x] Connection status in main window
+
 
 ### ✅ Sprint 5 — Dynamic Type System
-- [x] Client queries server for type descriptors before parsing
-- [x] Generic renderer — zero client changes when server adds new types
+
 
 ### ✅ Sprint 6 — Packaging & Release
-- [x] PyInstaller: `logviewer.exe` + `lang/` folder
-- [x] Installer script
-- [x] Release checklist
+
 
 ---
 
