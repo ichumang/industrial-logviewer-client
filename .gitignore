@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env
+
+# Build outputs
+build/
+dist/
+*.spec
+*.exe
+*.msi
+
+# Captures & test sessions (never commit operational data)
+*.pcap
+*.pcapng
+*.txt
+*.his
+test_sessions/
+captures/
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets / config
+*.ini
+*.cfg
+*.local
+secrets/
