@@ -35,22 +35,36 @@ Where legacy tools ship rigid, hardcoded data layouts that break on every firmwa
 
 ---
 
-## ✨ Feature Highlights
+## ✨ Key Features
 
 | Feature | Status |
 |---|---|
-| 🔌 Self-describing protocol — runtime schema negotiation | ✅ |
-| 📊 Multi-category log view (Activation, Drive Data, Programming, Errors) | ✅ |
-| 🗂️ Hierarchical date explorer — year → month → day | ✅ |
-| 🎨 Configurable field filtering per data type | ✅ |
-| 🟢 Live connection health — color-coded LED indicator + 15s probe | ✅ |
-| 🌍 Runtime language switching (DE/EN + extensible) | ✅ |
-| ⚡ Non-blocking UI — QThread worker for all network I/O | ✅ |
-| 💾 One-click export for audit & reporting | ✅ |
-| 📦 Single-file distributable (PyInstaller) | ✅ |
-| 🤖 AI-assisted anomaly detection | 🗺️ Roadmap |
-| 📈 Time-series trend visualization | 🗺️ Roadmap |
-| ☁️ SaaS dashboard / multi-device fleet view | 🗺️ Roadmap |
+| UDP-based log data retrieval | ✅ Done |
+| Activation days — calendar bitfield parser | ✅ Done |
+| Activation data — string and drive-field items | ✅ Done |
+| PyQt6 GUI with output viewer and status bar | ✅ Done |
+| Worker thread (non-blocking GUI) | ✅ Done |
+| Connection status indicator (green/yellow/red) | ✅ Done |
+| Configurable server IP address | ✅ Done |
+| i18n — external JSON language files | ✅ Done |
+| All four log categories wired in UI | ✅ Done |
+| Dynamic type descriptions (server-driven schema) | ✅ Done |
+| PyInstaller single-exe packaging | ✅ Done |
+
+Additional product-level highlights:
+
+- 🔌 Self-describing protocol — runtime schema negotiation
+- 📊 Multi-category log view (Activation, Drive Data, Programming, Errors)
+- 🗂️ Hierarchical date explorer — year → month → day
+- 🎨 Configurable field filtering per data type
+- 🟢 Live connection health — color-coded LED indicator + 15s probe
+- 🌍 Runtime language switching (DE/EN + extensible)
+- ⚡ Non-blocking UI — QThread worker for all network I/O
+- 💾 One-click export for audit and reporting
+- 📦 Single-file distributable (PyInstaller)
+- 🤖 AI-assisted anomaly detection (roadmap)
+- 📈 Time-series trend visualization (roadmap)
+- ☁️ SaaS dashboard / multi-device fleet view (roadmap)
 
 ---
 
@@ -100,7 +114,7 @@ The decoder builds its record layout **entirely from descriptors the server send
 | Category | Description | Engine State |
 |---|---|---|
 | **Activation Data** | Activation / deactivation events, operator context, drive field state | ✅ Live |
-| **Dynamic Drive Data** | Per-cycle drive & group telemetry, motion parameters | ✅ Engine ready |
+| **Dynamic Drive Data** | Per-cycle drive and group telemetry, motion parameters | ✅ Engine ready |
 | **Programming Logs** | Configuration changes, user actions, parameter history | ✅ Engine ready |
 | **Drive Errors** | Actuator fault events, error codes, diagnostic context | ✅ Engine ready |
 
@@ -142,13 +156,13 @@ The decoder builds its record layout **entirely from descriptors the server send
 
 The platform is architected to evolve from a **viewer** into an **intelligence engine**:
 
-- **Anomaly Detection** — ML models over decoded numeric fields to flag outliers (e.g., abnormal cycle timing, unexpected fault frequency)
-- **Natural-Language Querying** — "Show all faults after activation on March 4" → structured filter
-- **Predictive Diagnostics** — pattern recognition across historical sessions to anticipate faults
-- **Auto-Summarization** — LLM-generated session summaries for non-expert stakeholders
-- **Root-Cause Ranking** — surface top candidate explanations for drive error sequences
+- **Anomaly Detection** — ML models over decoded numeric fields to flag outliers (e.g. abnormal cycle timing, unexpected fault frequency).
+- **Natural-Language Querying** — "Show all faults after activation on March 4" → structured filter.
+- **Predictive Diagnostics** — pattern recognition across historical sessions to anticipate faults.
+- **Auto-Summarization** — LLM-generated session summaries for non-expert stakeholders.
+- **Root-Cause Ranking** — surface top candidate explanations for drive error sequences.
 
-> Because every record is **fully structured at decode time** (field names + typed values), all fields are immediately available as ML features — no brittle log scraping required.
+> Because every record is **fully structured at decode time** (field names plus typed values), all fields are immediately available as ML features — no brittle log scraping required.
 
 ---
 
@@ -178,7 +192,7 @@ industrial-logviewer-client/
 ├── lang/                   # i18n locale resources
 │   ├── de.json             #   German (primary)
 │   └── en.json             #   English
-├── docs/                   # Product & architecture documentation
+├── docs/                   # Product and architecture documentation
 │   ├── PRODUCT_VISION.md
 │   ├── architecture.md
 │   ├── ROADMAP.md
@@ -199,7 +213,7 @@ industrial-logviewer-client/
 git clone https://github.com/ichumang/industrial-logviewer-client.git
 cd industrial-logviewer-client
 
-# 2. Create & activate virtual environment
+# 2. Create and activate virtual environment
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1     # Windows PowerShell
 # source .venv/bin/activate       # macOS / Linux
@@ -232,18 +246,16 @@ Diagnostic Server PC  (CIC, fixed industrial network)
 └── LogDataServer.exe   ← C++ service, not in this repo
 ```
 
-The server owns all log file formats. The client **never reads log files directly** — it negotiates schema at runtime and receives structured binary responses over UDP.
-
 ---
 
 ## 🛡️ Design Principles
 
-1. **Contract-first** — server schema is the source of truth, client adapts
-2. **Zero recompile for format changes** — schema delivered at runtime
-3. **Zero recompile for text changes** — all UI strings in external JSON
-4. **Fail-safe** — missing schema surfaces a diagnostic, never a silent wrong decode
-5. **Thread safety** — all UDP I/O on worker thread, GUI thread never blocked
-6. **Separation of concerns** — transport, schema registry, parser, and GUI are independent layers
+1. **Contract-first** — server schema is the source of truth, client adapts.
+2. **Zero recompile for format changes** — schema delivered at runtime.
+3. **Zero recompile for text changes** — all UI strings in external JSON.
+4. **Fail-safe** — missing schema surfaces a diagnostic, never a silent wrong decode.
+5. **Thread safety** — all UDP I/O on worker thread, GUI thread never blocked.
+6. **Separation of concerns** — transport, schema registry, parser, and GUI are independent layers.
 
 ---
 
@@ -251,7 +263,7 @@ The server owns all log file formats. The client **never reads log files directl
 
 See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
-**Latest: v5.1.0** — Dynamic schema engine, schema filter dialog, 15s connection probe, full i18n
+**Latest: v5.1.0** — Dynamic schema engine, schema filter dialog, 15s connection probe, full i18n.
 
 ---
 
