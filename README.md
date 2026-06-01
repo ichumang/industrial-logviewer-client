@@ -1,179 +1,265 @@
-# Industrial Log Viewer — Client
+# 🛰️ Industrial Log Intelligence Platform
 
-> **Python/PyQt6 desktop client for real-time industrial log data visualization**
-> B2B industrial automation | UDP protocol | Cross-platform | i18n-ready
+> **Schema-driven, real-time telemetry & diagnostics client for industrial control systems**
+> Built with Python + PyQt6 · Zero hardcoded data structures · Fully self-describing protocol
 
----
-
-## Overview
-
-The **Industrial Log Viewer** is a desktop application built for industrial automation environments. It connects to a log-data server running on a diagnostic PC, retrieves structured log data over UDP, and presents it in a clear, operator-friendly GUI.
-
-The application is designed as the **client layer** of a two-tier architecture:
-
-```
-┌──────────────────────────────────────┐
-│   Industrial Log Viewer (this repo)  │   ← Python/PyQt6, operator laptop
-│   UDP Client · GUI · i18n            │
-└──────────────┬───────────────────────┘
-               │ UDP / LAN
-               ▼
-┌──────────────────────────────────────┐
-│   Log Data Server (CIC / server PC)  │   ← C++ service, diagnostic PC
-│   Reads log files · Serves over UDP  │
-└──────────────────────────────────────┘
-```
-
-The server owns the log file formats. The client never needs to know the raw format — it asks the server, receives structured binary responses, and renders them. **Adding a new log type on the server side requires zero client code changes.**
+[![Status](https://img.shields.io/badge/status-active%20development-brightgreen)](https://github.com/ichumang/industrial-logviewer-client)
+[![Python](https://img.shields.io/badge/python-3.13-blue)](https://python.org)
+[![UI](https://img.shields.io/badge/UI-PyQt6-41cd52)](https://pypi.org/project/PyQt6/)
+[![Architecture](https://img.shields.io/badge/architecture-schema--driven-orange)](#architecture)
+[![Version](https://img.shields.io/badge/version-5.1.0-informational)](CHANGELOG.md)
+[![License](https://img.shields.io/badge/license-Proprietary-lightgrey)](#license)
 
 ---
 
-## Key Features
+## 🎯 Product Vision
+
+**Industrial Log Intelligence Platform** transforms raw binary diagnostic streams from industrial controllers into **structured, human-readable, queryable intelligence** — in real time.
+
+Where legacy tools ship rigid, hardcoded data layouts that break on every firmware revision, this platform is **self-describing**: it negotiates the data schema with the server at runtime, so new data types and fields appear automatically — **zero client rebuild required**.
+
+> **Core differentiator:** *Schema-as-a-Service.* The data layout is a contract delivered over the wire at runtime, not baked into the binary.
+
+---
+
+## 💡 The Problem We Solve
+
+| Legacy Tool Pain | Our Solution |
+|---|---|
+| Hardcoded structs break on every firmware/field change | **Runtime schema negotiation** — client learns layout from server |
+| One rigid binary per data category | **Single generic decoder** adapts to all log types |
+| Cryptic hex dumps requiring expert interpretation | **Field-level rendering** with named values from schema |
+| Overwhelming data, no filtering | **User-configurable field filters** per data type |
+| GUI freezes during network fetch | **Worker-thread model** — UI always responsive |
+| No internationalization | **Runtime i18n** via external JSON locale files |
+
+---
+
+## ✨ Feature Highlights
 
 | Feature | Status |
 |---|---|
-| UDP-based log data retrieval | ✅ |
-| Activation days — calendar bitfield parser | ✅ |
-| Activation data — string & drive-field types | ✅ |
-| PyQt6 GUI with output viewer + status bar | ✅ |
-| Worker thread (non-blocking GUI) | ✅ |
-| Connection status indicator (green/yellow) | ✅ |
-| Configurable server IP address | ✅ |
-| i18n — external JSON language files | ✅ |
-| All 4 log categories | ✅ |
-| Dynamic type descriptions (server-driven) | ✅ |
-| PyInstaller single-exe packaging | ✅ |
+| 🔌 Self-describing protocol — runtime schema negotiation | ✅ |
+| 📊 Multi-category log view (Activation, Drive Data, Programming, Errors) | ✅ |
+| 🗂️ Hierarchical date explorer — year → month → day | ✅ |
+| 🎨 Configurable field filtering per data type | ✅ |
+| 🟢 Live connection health — color-coded LED indicator + 15s probe | ✅ |
+| 🌍 Runtime language switching (DE/EN + extensible) | ✅ |
+| ⚡ Non-blocking UI — QThread worker for all network I/O | ✅ |
+| 💾 One-click export for audit & reporting | ✅ |
+| 📦 Single-file distributable (PyInstaller) | ✅ |
+| 🤖 AI-assisted anomaly detection | 🗺️ Roadmap |
+| 📈 Time-series trend visualization | 🗺️ Roadmap |
+| ☁️ SaaS dashboard / multi-device fleet view | 🗺️ Roadmap |
 
 ---
 
-## Architecture
+## 🏗️ Architecture Overview
 
-### Two-Tier Deployment
+The platform follows a clean **separation-of-concerns** design with a thin presentation layer over a fully reusable protocol + data-intelligence engine.
 
 ```
-Operator Laptop (anywhere on LAN)
-└── logviewer.exe
-    └── lang/
-        ├── en.json
-        └── de.json
-
-CIC / Server PC (fixed on industrial network)
-└── LogDataServer.exe   (not in this repo)
+┌──────────────────────────────────────────────────────────────┐
+│               Presentation Layer  (PyQt6)                    │
+│   Category tabs · Date explorer · Live viewer · Filters      │
+└───────────────────────────┬──────────────────────────────────┘
+                            │
+┌───────────────────────────▼──────────────────────────────────┐
+│          Protocol & Data Intelligence Engine                 │
+│   • Runtime schema negotiation  (self-describing contracts)  │
+│   • Dynamic record decoder  (zero hardcoded layouts)         │
+│   • Connection health monitoring  (periodic background probe)│
+└───────────────────────────┬──────────────────────────────────┘
+                            │
+┌───────────────────────────▼──────────────────────────────────┐
+│          Transport Layer  (async UDP datagram socket)        │
+└───────────────────────────┬──────────────────────────────────┘
+                            │
+                ┌───────────▼───────────┐
+                │  Log Data Server      │
+                │  (C++ service, CIC PC)│
+                └───────────────────────┘
 ```
 
-### UDP Protocol
+### Core Principle: Zero Hardcoded Structs
 
-The client communicates using a lightweight binary UDP protocol:
+```
+CMD-5 (schema request) ──► Server sends field descriptors ──► SCHEMA_REGISTRY[itemtyp]
+                                                                        │
+CMD-3 (data request)   ──► Server sends typed records     ──► Decoded against runtime schema
+                                                                        │
+                                                             Rendered as named key:value pairs
+```
 
-- **Transport:** UDP, configurable server IP, fixed ports
-- **Request packet:** 4 bytes — Command group ID (2B) + Sub-command ID (2B), little-endian
-- **Reply packet:** Binary struct with header + payload, little-endian
+The decoder builds its record layout **entirely from descriptors the server sends**. If the schema is missing, the engine surfaces a clear diagnostic — a **fail-safe, contract-first** approach.
 
-**Implemented commands:**
+---
 
-| Command | Direction | Description |
+## 📊 Data Categories
+
+| Category | Description | Engine State |
 |---|---|---|
-| `GET_ACTIVATION_DAYS_REQ` | Client → Server | Request list of days with log data |
-| `GET_ACTIVATION_DAYS_REPLY` | Server → Client | Year + monthly bitfield of active days |
-| `GET_ACTIVATION_DATA_REQ` | Client → Server | Request log entries |
-| `GET_ACTIVATION_DATA_REPLY` | Server → Client | SYSTEMTIME + typed log items |
+| **Activation Data** | Activation / deactivation events, operator context, drive field state | ✅ Live |
+| **Dynamic Drive Data** | Per-cycle drive & group telemetry, motion parameters | ✅ Engine ready |
+| **Programming Logs** | Configuration changes, user actions, parameter history | ✅ Engine ready |
+| **Drive Errors** | Actuator fault events, error codes, diagnostic context | ✅ Engine ready |
 
-**Reply data types:**
-
-| Type | Format | Description |
-|---|---|---|
-| `ITEMTYPE_STRING` | UTF-16-LE, max 100 chars | Text log entries |
-| `ITEMTYPE_DRIVE_FIELD` | 5 × short struct | Drive motion data (nr, upper/lower, speed, pos) |
-
-### Target GUI Layout
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  🟢 Connected · 192.168.x.x  │  [Param] [Activation] [Drive]│
-├──────────────────────────┬──────────────────────────────────┤
-│  DATE EXPLORER           │  CONTENT VIEWER                  │
-│  📁 2026                 │  21.04.2026 — log entry          │
-│    📁 April              │  drv  OG    UG    speed  aktpos  │
-│      📄 21.04.2026  ────►│    3  1000  200   120    356     │
-└──────────────────────────┴──────────────────────────────────┘
-│ Status: connection · category · year · root path             │
-└─────────────────────────────────────────────────────────────┘
-```
+> All categories share the **same generic parsing engine** — each category is distinguished only by its runtime schema (itemtyp). Adding a new category = one new server-side schema contract, zero client code changes.
 
 ---
 
-## Internationalisation (i18n)
-
-All visible UI strings are externalised into JSON language files. No recompile needed to change or add a language.
-
-```
-lang/
-├── en.json    ← English (default / master)
-├── de.json    ← German
-└── fr.json    ← French (added by customer, zero code change)
-```
-
-To add a new language: copy `lang/en.json`, rename to `lang/xx.json`, translate the values. Done.
-
----
-
-## Project Roadmap
-
-### ✅ Sprint 1 — UDP Communication 
-
-
-### ✅ Sprint 2 — Connection Management & i18n
-
-
-### ✅ Sprint 3 — Full Category Support
-
-
-### ✅ Sprint 4 — GUI Integration
-
-
-### ✅ Sprint 5 — Dynamic Type System
-
-
-### ✅ Sprint 6 — Packaging & Release
-
-
----
-
-## Technology Stack
+## 🧱 Tech Stack
 
 | Layer | Technology |
 |---|---|
-| GUI Framework | PyQt6 |
-| Language | Python 3.11+ |
-| Networking | `socket` (UDP, stdlib) |
-| Binary parsing | `struct` (stdlib) |
-| i18n | JSON files (stdlib) |
-| Threading | `QThread` (PyQt6) |
-| Packaging | PyInstaller (planned) |
+| UI Framework | PyQt6 (Qt 6) |
+| Language | Python 3.13 |
+| Concurrency | QThread worker model — non-blocking network I/O |
+| Networking | Native UDP datagram sockets |
+| Data Engine | Binary protocol decoder, dynamic struct-free parser |
+| Schema Store | Runtime in-memory schema registry |
+| Localization | External JSON locale files (zero recompile) |
+| Packaging | PyInstaller — single-file distributable |
+| Tooling | VS Code · venv · Git + SemVer |
 
 ---
 
-## Getting Started
+## 📈 Product KPIs
 
-```bash
-pip install PyQt6
-python itc_log_client.py
+| KPI | Target | Rationale |
+|---|---|---|
+| Schema adaptation latency | < 1s on startup | New data types usable immediately |
+| Decode accuracy | 100% byte-for-byte | Verified against reference server |
+| UI freeze events during network fetch | **0** | Worker-thread architecture |
+| Client rebuilds per schema change | **0** | Core value proposition |
+| Connection recovery detection | ≤ 15s | Background 15s health probe |
+| Log categories supported without code change | Unlimited | Generic schema engine |
+| Distributable binary size | ~20–36 MB | Python + Qt6 runtime bundle |
+
+---
+
+## 🤖 AI & Intelligence Roadmap
+
+The platform is architected to evolve from a **viewer** into an **intelligence engine**:
+
+- **Anomaly Detection** — ML models over decoded numeric fields to flag outliers (e.g., abnormal cycle timing, unexpected fault frequency)
+- **Natural-Language Querying** — "Show all faults after activation on March 4" → structured filter
+- **Predictive Diagnostics** — pattern recognition across historical sessions to anticipate faults
+- **Auto-Summarization** — LLM-generated session summaries for non-expert stakeholders
+- **Root-Cause Ranking** — surface top candidate explanations for drive error sequences
+
+> Because every record is **fully structured at decode time** (field names + typed values), all fields are immediately available as ML features — no brittle log scraping required.
+
+---
+
+## 🧠 Skills Demonstrated
+
+| Domain | Details |
+|---|---|
+| **Software Architecture** | Layered design, separation of concerns, reusable engine |
+| **Binary Protocol Engineering** | Wire-format decoding, schema negotiation, endianness, struct parsing |
+| **Desktop GUI Development** | PyQt6, event-driven design, custom widgets, dark theme |
+| **Concurrency** | Thread-safe QThread worker model, non-blocking network I/O |
+| **Network Programming** | UDP datagram sockets, request/reply protocol, timeout handling |
+| **Dynamic Data Modeling** | Runtime schema registry, descriptor-driven record parsing |
+| **Internationalization** | Externalized locale JSON, runtime language switching |
+| **Product Thinking** | KPI definition, roadmap planning, pain-driven feature design |
+| **DevOps & Release Engineering** | SemVer, CHANGELOG, reproducible builds, .gitignore hygiene |
+| **Quality Engineering** | Wire-level verification, fail-safe contract-first design |
+
+---
+
+## 🗂️ Project Structure
+
+```
+industrial-logviewer-client/
+├── logviewer.py            # GUI entry point  (PyQt6 presentation layer)
+├── protocol.py             # Protocol + data intelligence engine
+├── lang/                   # i18n locale resources
+│   ├── de.json             #   German (primary)
+│   └── en.json             #   English
+├── docs/                   # Product & architecture documentation
+│   ├── PRODUCT_VISION.md
+│   ├── architecture.md
+│   ├── ROADMAP.md
+│   ├── KPI_FRAMEWORK.md
+│   └── RELEASE_PROCESS.md
+├── CHANGELOG.md            # Version history
+├── requirements.txt        # Pinned dependencies
+├── .gitignore
+└── README.md
 ```
 
-Start the log data server first (separate deployment).
+---
+
+## 🚀 Getting Started
+
+```bash
+# 1. Clone
+git clone https://github.com/ichumang/industrial-logviewer-client.git
+cd industrial-logviewer-client
+
+# 2. Create & activate virtual environment
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1     # Windows PowerShell
+# source .venv/bin/activate       # macOS / Linux
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Run (requires Log Data Server running on local network)
+python logviewer.py
+```
+
+### Build a distributable
+
+```bash
+pyinstaller --onefile --windowed --icon=assets/app.ico --name LogViewer logviewer.py
+```
 
 ---
 
-## Design Principles
+## 🔄 Two-Tier Deployment
 
-1. **Server owns the format** — client never hardcodes log file structure.
-2. **Zero recompile for text changes** — all UI strings live in external JSON.
-3. **Graceful degradation** — missing JSON key falls back to English; unreachable server shows yellow status.
-4. **Thread safety** — all UDP calls on worker thread, GUI thread never blocked.
-5. **Separation of concerns** — UDP module, parser, and GUI are independent.
+```
+Operator Laptop  (any PC on LAN)
+└── LogViewer.exe
+    └── lang/
+        ├── de.json
+        └── en.json
+
+Diagnostic Server PC  (CIC, fixed industrial network)
+└── LogDataServer.exe   ← C++ service, not in this repo
+```
+
+The server owns all log file formats. The client **never reads log files directly** — it negotiates schema at runtime and receives structured binary responses over UDP.
 
 ---
 
-## License
+## 🛡️ Design Principles
 
-Private / proprietary. All rights reserved.
+1. **Contract-first** — server schema is the source of truth, client adapts
+2. **Zero recompile for format changes** — schema delivered at runtime
+3. **Zero recompile for text changes** — all UI strings in external JSON
+4. **Fail-safe** — missing schema surfaces a diagnostic, never a silent wrong decode
+5. **Thread safety** — all UDP I/O on worker thread, GUI thread never blocked
+6. **Separation of concerns** — transport, schema registry, parser, and GUI are independent layers
+
+---
+
+## 📜 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for full version history.
+
+**Latest: v5.1.0** — Dynamic schema engine, schema filter dialog, 15s connection probe, full i18n
+
+---
+
+## 📄 License
+
+Proprietary — All rights reserved.
+This repository is a sanitized portfolio version. No proprietary protocol details, company names, internal server names, or real operational log data are included.
+
+---
+
+<p align="center"><i>Built with precision engineering and a product mindset.</i></p>
